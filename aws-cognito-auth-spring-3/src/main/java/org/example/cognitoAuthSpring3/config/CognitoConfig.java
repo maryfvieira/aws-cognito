@@ -1,13 +1,14 @@
 package org.example.cognitoAuthSpring3.config;
 
 import lombok.Data;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-@Component
+@Configuration
 @PropertySource("classpath:aws.properties")
 @ConfigurationProperties(prefix = "aws")
 @Data

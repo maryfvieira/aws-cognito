@@ -28,10 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-//@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {Application.class}, properties = "classpath:aws-integrated-tests.properties")
-//@EnableConfigurationProperties(value = CognitoConfig.class)
-//@ContextConfiguration(classes = AppConfig.class)
 @TestPropertySource("classpath:aws-integrated-tests.properties")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
