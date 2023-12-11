@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.MediaType;
 import org.example.cognitoAuthSpring3.Application;
+import org.example.cognitoAuthSpring3.handler.StreamLambdaHandler;
 import org.example.cognitoAuthSpring3.model.UserGroupAddRequest;
 import org.example.cognitoAuthSpring3.model.UserLoginRequestPayload;
 import org.example.cognitoAuthSpring3.model.UserLoginResponsePayload;
@@ -40,7 +41,7 @@ public class UserControllerIntegrationTest {
     private AdminService adminService;
 
     private MockLambdaContext lambdaContext;
-    private StreamLambdaHandlerTest handler;
+    private StreamLambdaHandler handler;
     private static Gson gson;
 
     private String userPath = "/api/v1/user";
@@ -72,7 +73,7 @@ public class UserControllerIntegrationTest {
 //                    HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
             this.lambdaContext = new MockLambdaContext();
-            this.handler = new StreamLambdaHandlerTest();
+            this.handler = new StreamLambdaHandler();
 
 
         } catch (Exception ex) {

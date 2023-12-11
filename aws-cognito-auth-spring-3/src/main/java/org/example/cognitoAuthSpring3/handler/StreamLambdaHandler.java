@@ -16,16 +16,16 @@ import java.io.OutputStream;
 
 
 public class StreamLambdaHandler implements RequestStreamHandler {
-    private SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+    private SpringBootLambdaContainerHandler<Object, AwsProxyResponse> handler;
 
     public StreamLambdaHandler() throws ContainerInitializationException {
-//        handler = new SpringBootProxyHandlerBuilder<>()
-//                .defaultProxy()
-//                .asyncInit()
-//                .springBootApplication(Application.class)
-//                .buildAndInitialize();
+        handler = new SpringBootProxyHandlerBuilder<>()
+                .defaultProxy()
+                .asyncInit()
+                .springBootApplication(Application.class)
+                .buildAndInitialize();
 
-        handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(AppConfig.class);
+        //handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(AppConfig.class);
     }
     @Override
     public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
