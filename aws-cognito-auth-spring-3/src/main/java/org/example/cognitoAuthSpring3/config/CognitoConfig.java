@@ -1,12 +1,10 @@
 package org.example.cognitoAuthSpring3.config;
 
 import lombok.Data;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
 
 @Configuration
 @PropertySource("classpath:aws.properties")
@@ -28,5 +26,7 @@ public class CognitoConfig {
     private String cognito_jwks_Uri;
     @Value("${aws.timeout:1000}")
     private Integer timeout;
+    @Value("${aws.timeout:1200}")
+    private Integer expirationTime;
 
 }

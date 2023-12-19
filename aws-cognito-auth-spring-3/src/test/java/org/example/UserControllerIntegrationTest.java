@@ -161,7 +161,6 @@ public class UserControllerIntegrationTest {
 
         InputStream inputStream = req.buildStream();
 
-
         ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
         handle(inputStream, responseStream);
         var response = gson.fromJson(responseStream.toString(), AwsProxyResponse.class);

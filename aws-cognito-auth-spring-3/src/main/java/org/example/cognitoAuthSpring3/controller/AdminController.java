@@ -1,11 +1,8 @@
 package org.example.cognitoAuthSpring3.controller;
 
 import org.example.cognitoAuthSpring3.model.UserGroupAddRequest;
-import org.example.cognitoAuthSpring3.model.UserLoginRequestPayload;
-import org.example.cognitoAuthSpring3.model.UserLoginResponsePayload;
 import org.example.cognitoAuthSpring3.model.UserRegisterRequest;
 import org.example.cognitoAuthSpring3.service.contract.AdminService;
-import org.example.cognitoAuthSpring3.service.contract.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

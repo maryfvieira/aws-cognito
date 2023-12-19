@@ -5,13 +5,13 @@ import com.amazonaws.services.cognitoidp.model.*;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.jwk.source.RemoteJWKSet;
 import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import org.example.cognitoAuthSpring3.config.CognitoConfig;
+import org.example.cognitoAuthSpring3.helper.JwtHelper;
 import org.example.cognitoAuthSpring3.model.JwtAuthentication;
 import org.example.cognitoAuthSpring3.model.JwtIdTokenCredentialsHolder;
 import org.example.cognitoAuthSpring3.model.UserResponse;
@@ -20,12 +20,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import java.net.URL;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,19 +30,25 @@ public class UserServiceImpl implements UserService {
     private final ConfigurableJWTProcessor configurableJWTProcessor;
     private JwtIdTokenCredentialsHolder jwtIdTokenCredentialsHolder;
     private CognitoConfig cognitoConfig;
-    private static final String BEARER_PREFIX = "Bearer ";
     private static String GROUPS_FIELD = "cognito:groups";
     private static final String ROLE_PREFIX = "ROLE_";
     private static final String EMPTY_PWD = "";
+    private JWKSource jwkSource;
+    private JwtHelper jwtHelper;
 
     public UserServiceImpl(AWSCognitoIdentityProvider identityProvider,
                            ConfigurableJWTProcessor configurableJWTProcessor,
                            JwtIdTokenCredentialsHolder jwtIdTokenCredentialsHolder,
-                           CognitoConfig cognitoConfig){
+                           CognitoConfig cognitoConfig,
+                           JWKSource jwkSource,
+                           JwtHelper jwtHelper) {
+
         this.identityProvider = identityProvider;
         this.configurableJWTProcessor = configurableJWTProcessor;
         this.jwtIdTokenCredentialsHolder = jwtIdTokenCredentialsHolder;
         this.cognitoConfig = cognitoConfig;
+        this.jwkSource = jwkSource;
+        this.jwtHelper = jwtHelper;
     }
 
     public Boolean createUser(String name, String userName, String email, String password) {
@@ -80,6 +82,8 @@ public class UserServiceImpl implements UserService {
         }
     }
     public Map<String, String> signIn(String email, String password) {
+
+        Date expirationTime = new Date(new Date().getTime() +  (1000 * 60 * 60 * 24));
         Map<String, String> result = new LinkedHashMap<>() {{
             put("idToken", "");
             put("accessToken", "");
@@ -164,7 +168,6 @@ public class UserServiceImpl implements UserService {
             return userResponse;
         }
     }
-
     public void changePassword(String accessToken, String oldPassword, String newPassword) {
 
         try{
@@ -185,15 +188,16 @@ public class UserServiceImpl implements UserService {
 
         String auth = "Deny";
         if (authorizationToken != null) {
-            JWKSource jwkSource = new RemoteJWKSet(new URL(cognitoConfig.getCognito_jwks_Uri()));
             JWSAlgorithm jwsAlgorithm = JWSAlgorithm.RS256;
             JWSKeySelector keySelector = new JWSVerificationKeySelector(jwsAlgorithm, jwkSource);
             configurableJWTProcessor.setJWSKeySelector(keySelector);
             try {
-                JWTClaimsSet claimsSet = this.configurableJWTProcessor.process(stripBearerToken(authorizationToken),null);
+                String token = jwtHelper.stripBearerToken(authorizationToken);
 
-                validateIssuer(claimsSet);
-                verifyIfAccessToken(claimsSet);
+                JWTClaimsSet claimsSet = this.configurableJWTProcessor.process(token,null);
+
+                jwtHelper.validateIssuer(cognitoConfig.getCognito_userPoolId(), claimsSet);
+                jwtHelper.validateAccessToken(claimsSet);
 
                 String username = claimsSet.getClaims().get("username").toString();
 
@@ -213,7 +217,7 @@ public class UserServiceImpl implements UserService {
 
                     User user = new User(username, EMPTY_PWD, grantedAuthorities);
 
-                    jwtIdTokenCredentialsHolder.setIdToken(stripBearerToken(authorizationToken));
+                    //jwtIdTokenCredentialsHolder.setIdToken(token);
                     return new JwtAuthentication(user, claimsSet, grantedAuthorities);
                 }
 
@@ -228,15 +232,12 @@ public class UserServiceImpl implements UserService {
 //                        .context(ctx).build();
 
             }
-            catch (BadJOSEException e) {
-                //log
+            catch (ParseException | BadJOSEException e) {
+                //Token inválido
+                System.err.println(e.getMessage());
                 throw e;
             } catch (JOSEException e) {
-                e.printStackTrace();
-                //log
-                throw e;
-            } catch (ParseException e) {
-                // TODO Auto-generated catch block
+                // Key sourcing failed or another internal exception
                 e.printStackTrace();
                 //log
                 throw e;
@@ -250,19 +251,6 @@ public class UserServiceImpl implements UserService {
 //            }
         }
         return null;
-    }
-    private String stripBearerToken(String token) {
-        return token.startsWith(BEARER_PREFIX) ? token.substring(BEARER_PREFIX.length()) : token;
-    }
-    private void validateIssuer(JWTClaimsSet claims) throws Exception {
-        if (!claims.getIssuer().contains(cognitoConfig.getCognito_userPoolId())) {
-            throw new Exception("Issuer does not match to cognito idp");
-        }
-    }
-    private void verifyIfAccessToken(JWTClaimsSet claims) throws Exception {
-        if (!claims.getClaim("token_use").equals("access")) {
-            throw new Exception("Access Denied");
-        }
     }
     private static <T, U> List<U> convertList(List<T> from, Function<T, U> func) {
         return from.stream().map(func).collect(Collectors.toList());
