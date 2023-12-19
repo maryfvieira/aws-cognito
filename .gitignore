@@ -2,8 +2,8 @@
 aws-cognito-auth-spring-3.iml
 aws-cognito-auth-spring-3/target/
 aws-cognito-auth-spring-3/src/main/resources/aws.properties
+aws-cognito-auth-spring-3/src/main/resources/jwt.properties
 aws-cognito-auth-spring-3/src/test/resources/aws-integrated-tests.properties
-aws-cognito-auth-spring-3/src/test/resources/aws.properties
 aws-cognito-auth-spring-3/.aws-sam/
 aws-cognito-auth-spring-3/src/assembly
 *.DS_Store
